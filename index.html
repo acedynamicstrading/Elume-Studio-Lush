@@ -694,24 +694,151 @@
   }
 
 
-  /* Log */
+  /* ── Diagnostic Panel ───────────────────────────── */
   .log {
-    font-size: 9px;
-    font-family: monospace;
-    color: var(--text-dim);
-    letter-spacing: 1px;
-    line-height: 1.8;
-    max-height: 80px;
-    overflow-y: auto;
     margin-top: 16px;
-    border-top: 1px solid var(--border);
-    padding-top: 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
   }
 
-  .log .entry { color: var(--text-dim); }
-  .log .entry.gold { color: var(--gold-dim); }
-  .log .entry.ok { color: #4caf82; }
-  .log .entry.err { color: #c45a5a; }
+  .log-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .log-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .log-title {
+    font-size: 7px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  .log-badge {
+    font-size: 7px;
+    letter-spacing: 1px;
+    color: var(--bg);
+    background: var(--text-dim);
+    padding: 1px 5px;
+    border-radius: 2px;
+    min-width: 16px;
+    text-align: center;
+    font-family: monospace;
+  }
+
+  .log-badge.has-err { background: #c45a5a; }
+  .log-badge.has-ok  { background: #4caf82; }
+
+  .log-toggle {
+    font-size: 8px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  .log-body {
+    font-size: 9px;
+    font-family: monospace;
+    letter-spacing: 0.5px;
+    line-height: 1;
+    max-height: 260px;
+    overflow-y: auto;
+    display: block;
+  }
+
+  .log-body.collapsed { display: none; }
+
+  .log-entry {
+    display: grid;
+    grid-template-columns: 52px 18px 1fr;
+    gap: 0;
+    padding: 5px 12px;
+    border-bottom: 1px solid rgba(30,30,30,0.6);
+    align-items: start;
+  }
+
+  .log-entry:last-child { border-bottom: none; }
+  .log-entry:hover { background: var(--bg2); }
+
+  .log-entry .le-time {
+    color: var(--text-dim);
+    opacity: 0.6;
+    font-size: 8px;
+    padding-top: 1px;
+    white-space: nowrap;
+  }
+
+  .log-entry .le-icon {
+    font-size: 10px;
+    padding-top: 0px;
+    text-align: center;
+  }
+
+  .log-entry .le-msg {
+    color: var(--text-dim);
+    line-height: 1.5;
+    word-break: break-all;
+  }
+
+  .log-entry .le-detail {
+    grid-column: 3;
+    font-size: 8px;
+    color: #c45a5a;
+    margin-top: 3px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-all;
+    background: rgba(196,90,90,0.06);
+    padding: 4px 6px;
+    border-left: 2px solid #c45a5a;
+  }
+
+  .log-entry.type-ok  .le-msg { color: #4caf82; }
+  .log-entry.type-err .le-msg { color: #c45a5a; font-weight: 500; }
+  .log-entry.type-gold .le-msg { color: var(--gold); }
+  .log-entry.type-info .le-msg { color: var(--text); }
+
+  .log-entry.type-err .le-icon::before  { content: '✗'; color: #c45a5a; }
+  .log-entry.type-ok .le-icon::before   { content: '✓'; color: #4caf82; }
+  .log-entry.type-gold .le-icon::before { content: '◈'; color: var(--gold); }
+  .log-entry.type-info .le-icon::before { content: '·'; color: var(--text-dim); }
+  .log-entry .le-icon::before           { content: '·'; color: var(--text-dim); }
+
+  .log-footer {
+    padding: 6px 12px;
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+  }
+
+  .log-clear {
+    font-size: 7px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  .log-clear:hover { color: var(--gold); }
+
+  .log-step-label {
+    font-size: 7px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
 
   /* Separator */
   .sep {
@@ -1099,7 +1226,21 @@
       <button class="btn-primary" id="analyseBtn" onclick="runAnalysis()">ANALYSE MY FACE</button>
     </div>
 
-    <div class="log" id="log"></div>
+    <!-- Diagnostic Panel -->
+    <div class="log" id="log">
+      <div class="log-header" onclick="toggleLog()">
+        <div class="log-header-left">
+          <div class="log-title">System Diagnostics</div>
+          <div class="log-badge" id="logBadge">0</div>
+        </div>
+        <div class="log-toggle" id="logToggle">▲ hide</div>
+      </div>
+      <div class="log-body" id="logBody"></div>
+      <div class="log-footer">
+        <span class="log-step-label" id="logCurrentStep">Ready</span>
+        <button class="log-clear" onclick="clearLog()">Clear</button>
+      </div>
+    </div>
   </div>
 
   <!-- RIGHT PANEL -->
@@ -1170,8 +1311,7 @@
 <!-- Hidden canvas for image capture -->
 <canvas id="snapCanvas" style="display:none"></canvas>
 
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
-<script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous">
 // ─── Consultation Panel ───────────────────────────────────────
 async function openConsult(styleName, faceShape) {
   document.getElementById('consultTitle').textContent = styleName;
@@ -1196,6 +1336,7 @@ async function openConsult(styleName, faceShape) {
     renderConsult(data);
   } catch (e) {
     document.getElementById('consultLoading').innerHTML = '<p style="color:#c45a5a;font-size:11px">Could not load consultation: ' + e.message + '</p>';
+    addLog('Consultation error: ' + e.message, 'err', e.stack || e.message);
   }
 }
 
@@ -1247,11 +1388,7 @@ function bookAppointment() {
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 
 <script>
-// ─── Utility ──────────────────────────────────────────────────
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
 // ─── Backend URL (hardcoded) ──────────────────────────────────
-// Fixed reserved domain — never changes between Kaggle sessions
 const API_URL = 'https://data-silicon-studio.ngrok-free.dev';
 window.addEventListener('load', () => setTimeout(ping, 800));
 
@@ -1269,13 +1406,69 @@ let streamActive = false;
 let styleRefBlob = null;
 
 // ─── Log ─────────────────────────────────────────────────────
-function addLog(msg, type = '') {
-  const log = document.getElementById('log');
-  const entry = document.createElement('div');
-  entry.className = `entry ${type}`;
-  entry.textContent = `› ${msg}`;
-  log.appendChild(entry);
-  log.scrollTop = log.scrollHeight;
+// ─── Diagnostic Logger ────────────────────────────────────────
+let _logCount = 0;
+let _logCollapsed = false;
+let _logHasErr = false;
+
+function addLog(msg, type = '', detail = '') {
+  _logCount++;
+  _logHasErr = _logHasErr || type === 'err';
+
+  const now = new Date();
+  const ts  = now.toTimeString().slice(0,8);
+
+  const body  = document.getElementById('logBody');
+  const badge = document.getElementById('logBadge');
+  const step  = document.getElementById('logCurrentStep');
+
+  // Badge
+  badge.textContent = _logCount;
+  badge.className   = 'log-badge' + (_logHasErr ? ' has-err' : (type === 'ok' ? ' has-ok' : ''));
+
+  // Current step label
+  if (type !== 'err') step.textContent = msg.length > 40 ? msg.slice(0,40) + '…' : msg;
+  else step.textContent = '⚠ Error — see log';
+
+  // Entry
+  const row = document.createElement('div');
+  row.className = `log-entry type-${type || 'info'}`;
+  row.innerHTML =
+    `<div class="le-time">${ts}</div>` +
+    `<div class="le-icon"></div>` +
+    `<div class="le-msg">${msg}</div>`;
+
+  if (detail) {
+    const det = document.createElement('div');
+    det.className = 'le-detail';
+    det.textContent = detail;
+    row.appendChild(det);
+    // Auto-expand on error
+    if (type === 'err' && _logCollapsed) toggleLog();
+  }
+
+  body.appendChild(row);
+  body.scrollTop = body.scrollHeight;
+
+  // Auto-expand on first error
+  if (type === 'err' && _logCollapsed) toggleLog();
+}
+
+function toggleLog() {
+  const body   = document.getElementById('logBody');
+  const toggle = document.getElementById('logToggle');
+  _logCollapsed = !_logCollapsed;
+  body.classList.toggle('collapsed', _logCollapsed);
+  toggle.textContent = _logCollapsed ? '▼ show' : '▲ hide';
+}
+
+function clearLog() {
+  document.getElementById('logBody').innerHTML = '';
+  document.getElementById('logBadge').textContent = '0';
+  document.getElementById('logBadge').className = 'log-badge';
+  document.getElementById('logCurrentStep').textContent = 'Ready';
+  _logCount = 0;
+  _logHasErr = false;
 }
 
 // ─── Ping ─────────────────────────────────────────────────────
@@ -1289,7 +1482,7 @@ async function ping() {
     addLog(`Backend online · GPU: ${data.gpu}`, 'ok');
   } catch {
     dot.className = 'status-dot red';
-    addLog('Backend unreachable', 'err');
+    addLog('Backend unreachable — check Kaggle is running', 'err', `URL: ${API_URL}`);
   }
 }
 
@@ -1792,7 +1985,7 @@ async function runAnalysis() {
     aiSetStatus('Consulting style intelligence...');
     aiLog('Querying neural style model', hasCustom ? 1 : 0);
     aiSetProgress(78, 'AI style matching');
-    addLog('Getting ' + recommendCount + ' AI recommendations...', 'gold');
+    addLog('Calling /analyse — sending face metrics to Groq', 'gold');
 
     const aiStyles = await generateStylesViaBackend(faceData, recommendCount);
     aiLog('Received ' + aiStyles.length + ' personalised styles', hasCustom ? 2 : 1);
@@ -1868,7 +2061,7 @@ async function runAnalysis() {
       } catch (err) {
         const el = document.getElementById('loading-' + i);
         if (el) { el.className = 'card-error'; el.textContent = 'Failed'; }
-        addLog('Error ' + s.name + ': ' + err.message, 'err');
+        addLog('Render failed: ' + s.name + ' — ' + err.message, 'err', err.stack || err.message);
       }
     }
 
@@ -1876,7 +2069,7 @@ async function runAnalysis() {
 
   } catch (e) {
     document.getElementById('generatingState').classList.remove('visible');
-    addLog('Analysis error: ' + e.message, 'err');
+    addLog('Analysis error: ' + e.message, 'err', e.stack || e.message);
     document.getElementById('analyseBtn').disabled = false;
   }
 }
