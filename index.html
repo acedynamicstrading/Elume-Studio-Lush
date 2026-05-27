@@ -1247,6 +1247,9 @@ function bookAppointment() {
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
 
 <script>
+// ─── Utility ──────────────────────────────────────────────────
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 // ─── Backend URL (hardcoded) ──────────────────────────────────
 // Fixed reserved domain — never changes between Kaggle sessions
 const API_URL = 'https://data-silicon-studio.ngrok-free.dev';
